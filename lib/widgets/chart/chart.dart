@@ -18,8 +18,7 @@ class Chart extends StatelessWidget {
   }
 
 
-  
-   
+
 
   double get maxTotalExpense {
     double maxTotalExpense = 0;
