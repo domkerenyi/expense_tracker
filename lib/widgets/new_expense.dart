@@ -5,7 +5,9 @@ import 'package:expense_tracker/models/expense.dart';
 final formatter = DateFormat.yMd();
 
 class NewExpense extends StatefulWidget {
-  const NewExpense({super.key});
+  const NewExpense({super.key, required this.addExpense});
+
+  final void Function(Expense expense) addExpense;
 
   @override
   State<NewExpense> createState() {
@@ -45,6 +47,43 @@ class _NewExpenseState extends State<NewExpense> {
     });
   }
 
+  void _submitExpenseData() {
+    final enteredAmount = double.tryParse(
+        _amountController.text); // we need to convert the string to a double
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
+
+    if (_titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null) {
+      showDialog(context: context, builder: (ctx) => AlertDialog(
+        title: const Text('Invalid input'),
+        content: const Text('Please enter a valid title and amount'),
+        actions: [
+          TextButton(onPressed: () {
+            Navigator.pop(ctx);
+          }, child: const Text('Okay'))
+        ],
+      ),);
+      return;
+
+    } else {
+      final enteredTitle = _titleController.text;
+      final enteredAmount = double.parse(_amountController.text);
+      final enteredDate = _selectedDate!;
+
+      final newValidatedExpense = Expense(
+        title: enteredTitle,
+        amount: enteredAmount,
+        date: enteredDate,
+        category: _selectedCategory,
+      );
+
+      widget.addExpense(newValidatedExpense);
+
+      Navigator.pop(context);
+    }
+  }
+
   //void _saveTitleInput(String inputValue) {
   //  _enteredTitle = inputValue;
   //}
@@ -52,7 +91,7 @@ class _NewExpenseState extends State<NewExpense> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(16,48,16,16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -102,7 +141,8 @@ class _NewExpenseState extends State<NewExpense> {
                     items: Category.values
                         .map(
                           (category) => DropdownMenuItem(
-                            value: category, // not visible for the user but will be stored internally by the onChanged function
+                            value:
+                                category, // not visible for the user but will be stored internally by the onChanged function
                             child: Text(
                               category.name.toUpperCase(),
                             ),
@@ -111,8 +151,8 @@ class _NewExpenseState extends State<NewExpense> {
                         .toList(),
                     onChanged: (value) {
                       if (value == null) {
-                          return;
-                        }
+                        return;
+                      }
                       setState(() {
                         _selectedCategory = value;
                       });
@@ -126,7 +166,7 @@ class _NewExpenseState extends State<NewExpense> {
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _submitExpenseData,
                   child: const Text('Add Expense'),
                 ),
               ],
